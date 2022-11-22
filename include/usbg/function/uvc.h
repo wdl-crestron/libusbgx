@@ -59,6 +59,7 @@ struct usbg_f_uvc_format_attrs
 	int bAspectRatioX;
 	int bAspectRatioY;
 	int bmInterfaceFlags;
+    unsigned char bVariableSize;
     struct usbg_f_uvc_guid_desc guidFormat;
 	const char *format;
 	struct usbg_f_uvc_frame_attrs **frames;
@@ -100,6 +101,7 @@ enum usbg_f_uvc_format_attr {
 	USBG_F_UVC_FORMAT_ASPECTRATIO_X,
 	USBG_F_UVC_FORMAT_DEFAULT_FRAME_INDEX,
 	USBG_F_UVC_FORMAT_FORMAT_INDEX,
+	USBG_F_UVC_FORMAT_VARIABLE_SIZE,
 	USBG_F_UVC_FORMAT_GUID_FORMAT,
 	USBG_F_UVC_FORMAT_ATTR_MAX
 };
@@ -129,6 +131,7 @@ union usbg_f_uvc_format_attr_val {
 	int bAspectRatioX;
 	int bAspectRatioY;
 	int bmInterfaceFlags;
+    unsigned char bVariableSize;
     struct usbg_f_uvc_guid_desc guidFormat;
 };
 

@@ -63,14 +63,14 @@ int main(void)
 	struct usbg_f_uvc_frame_attrs uvc_frame_attrs_array[] = {
 		{
 			.bFrameIndex = 1,
-			.dwFrameInterval = 2000000,
+			.dwFrameInterval = 333333,
 			.wHeight = 480,
 			.wWidth = 640,
 		}, {
 			.bFrameIndex = 2,
-			.dwFrameInterval = 2000000,
-			.wHeight = 1080,
-			.wWidth = 1920,
+			.dwFrameInterval = 333333,
+			.wHeight = 720,
+			.wWidth = 1280,
 		}, {
 			.bFrameIndex = 3,
 			.dwFrameInterval = 333333,
@@ -120,6 +120,7 @@ int main(void)
 		}, {
 			.frames = uvc_frame_uncompressed_framebased_attrs,
 			.format = "uncompressed/f",
+            .bVariableSize = 1,
             .guidFormat = {
                 {
                     'H',  '2',  '6',  '4', 0x00, 0x00, 0x10, 0x00,
