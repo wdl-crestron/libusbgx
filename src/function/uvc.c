@@ -30,14 +30,16 @@
 #define UVC_PATH_CLASS_SS		"class/ss/h"
 #define UVC_PATH_STREAMING		"streaming"
 #define UVC_PATH_STREAMING_UNCOMPRESSED	"uncompressed/u"
+#define UVC_PATH_STREAMING_UNCOMPRESSED_FRAMEBASED	"uncompressed/f"
 #define UVC_PATH_STREAMING_MJPEG	"mjpeg/m"
 
 #define MAX_FRAMES 16
-#define MAX_FORMATS 2
+#define MAX_FORMATS 3
 
 const char * format_names[MAX_FORMATS] = {
 	UVC_PATH_STREAMING_MJPEG,
 	UVC_PATH_STREAMING_UNCOMPRESSED,
+	UVC_PATH_STREAMING_UNCOMPRESSED_FRAMEBASED,
 };
 
 struct formats {
@@ -119,6 +121,50 @@ struct {
 
 #undef UVC_DEC_ATTR
 
+static int guid_get(const char *path, const char *name, const char *attr, void *val)
+{
+	struct usbg_f_uvc_guid_desc *desc = val;
+	int ret;
+
+	ret = usbg_read_buf_limited(path, name, attr, desc->value, sizeof(desc->value));
+
+    if (ret == USBG_ERROR_EXIST) {
+        memset(desc->value, 0, sizeof(desc->value));
+        desc->len = 0;
+        return USBG_SUCCESS;
+    }
+
+	if (ret < 0)
+		return ret;
+
+	desc->len = ret;
+	return USBG_SUCCESS;
+}
+
+static int guid_set(const char *path, const char *name, const char *attr, void *val)
+{
+	const struct usbg_f_uvc_guid_desc *desc = val;
+	const char *buf = desc->value;
+	int len = desc->len;
+	int ret;
+
+	if (len == 0) return USBG_SUCCESS;
+
+	ret = usbg_write_buf(path, name, attr, buf, len);
+	if (ret > 0)
+		ret = USBG_SUCCESS;
+
+	return ret;
+}
+
+#define UVC_GUID_ATTR(_name)						\
+	{								\
+		.name = #_name,						\
+		.offset = offsetof(struct usbg_f_uvc_format_attrs, _name),     \
+		.get = guid_get,				        \
+		.set = guid_set,				        \
+	}
+
 #define UVC_DEC_ATTR(_name)						\
 	{								\
 		.name = #_name,						\
@@ -153,6 +199,7 @@ struct {
 	[USBG_F_UVC_FORMAT_ASPECTRATIO_Y] = UVC_DEC_ATTR_RO(bAspectRatioY),
 	[USBG_F_UVC_FORMAT_DEFAULT_FRAME_INDEX] = UVC_DEC_ATTR(bDefaultFrameIndex),
 	[USBG_F_UVC_FORMAT_FORMAT_INDEX] = UVC_DEC_ATTR_RO(bFormatIndex),
+	[USBG_F_UVC_FORMAT_GUID_FORMAT] = UVC_GUID_ATTR(guidFormat),
 };
 
 
@@ -578,6 +625,17 @@ static int uvc_set_class(usbg_f_uvc *uvcf, char *cs)
 				return ret;
 		}
 
+		nmb = snprintf(check_path, sizeof(check_path), "%s/" UVC_PATH_STREAMING_UNCOMPRESSED_FRAMEBASED, path);
+		if (nmb >= sizeof(check_path))
+			return USBG_ERROR_PATH_TOO_LONG;
+
+		ret = stat(check_path, &buffer);
+		if (!ret) {
+			ret = uvc_link(path, UVC_PATH_STREAMING_MJPEG, "header/h/f");
+			if (ret != USBG_SUCCESS)
+				return ret;
+		}
+
 		nmb = snprintf(check_path, sizeof(check_path), "%s/" UVC_PATH_STREAMING_MJPEG, path);
 		if (nmb >= sizeof(check_path))
 			return USBG_ERROR_PATH_TOO_LONG;
@@ -864,6 +922,9 @@ static int uvc_export_config(struct usbg_f_uvc *uvcf, config_setting_t *root)
 		if (ret)
 			break;
 
+        if(!uvc_config_attr[i].export)
+            continue;
+
 		ret = uvc_config_attr[i].export(config_node, uvc_config_attr[i].name, &val);
 		if (ret)
 			break;
@@ -884,6 +945,9 @@ static int uvc_export_format_attrs(struct usbg_f_uvc *uvcf, const char *format,
 		ret = usbg_f_uvc_get_format_attr_val(uvcf, format, i, &val);
 		if (ret)
 			break;
+
+        if(!uvc_config_attr[i].export)
+            continue;
 
 		ret = uvc_format_attr[i].export(root, uvc_format_attr[i].name, &val);
 		if (ret)
@@ -907,6 +971,9 @@ static int uvc_export_frame_attrs(struct usbg_f_uvc *uvcf, const char *format,
 		ret = usbg_f_uvc_get_frame_attr_val(uvcf, format, frame_id, i, &val);
 		if (ret)
 			break;
+
+        if(!uvc_config_attr[i].export)
+            continue;
 
 		ret = uvc_frame_attr[i].export(root, uvc_frame_attr[i].name, &val);
 		if (ret)
@@ -994,7 +1061,17 @@ out:
 
 static int uvc_set_format(char *format_path, const char *format, const struct usbg_f_uvc_format_attrs *attrs)
 {
-	return usbg_write_dec(format_path, format, "bDefaultFrameIndex", attrs->bDefaultFrameIndex);
+	int ret;
+
+    ret = usbg_write_dec(format_path, format, "bDefaultFrameIndex", attrs->bDefaultFrameIndex);
+
+    if(ret != USBG_SUCCESS)
+        return ret;
+
+    struct usbg_f_uvc_guid_desc guidFormat = attrs->guidFormat;
+
+    ret = guid_set(format_path, format, "guidFormat", &guidFormat);
+    return ret;
 }
 
 static int uvc_set_frame(char *format_path, const char *format, const struct usbg_f_uvc_frame_attrs *attrs)

@@ -100,6 +100,14 @@ int main(void)
 		NULL,
 	};
 
+	struct usbg_f_uvc_frame_attrs *uvc_frame_uncompressed_framebased_attrs[] = {
+		&uvc_frame_attrs_array[0],
+		&uvc_frame_attrs_array[1],
+		&uvc_frame_attrs_array[2],
+		&uvc_frame_attrs_array[3],
+		NULL,
+	};
+
 	struct usbg_f_uvc_format_attrs uvc_format_attrs_array[] = {
 		{
 			.frames = uvc_frame_mjpeg_attrs,
@@ -108,13 +116,25 @@ int main(void)
 		}, {
 			.frames = uvc_frame_uncompressed_attrs,
 			.format = "uncompressed/u",
-			.bDefaultFrameIndex = 2,
+			.bDefaultFrameIndex = 3,
+		}, {
+			.frames = uvc_frame_uncompressed_framebased_attrs,
+			.format = "uncompressed/f",
+            .guidFormat = {
+                {
+                    'H',  '2',  '6',  '4', 0x00, 0x00, 0x10, 0x00,
+                    0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71
+                },
+                16
+            },
+			.bDefaultFrameIndex = 3,
 		}
 	};
 
 	struct usbg_f_uvc_format_attrs *uvc_format_attrs[] = {
 		&uvc_format_attrs_array[0],
 		&uvc_format_attrs_array[1],
+		&uvc_format_attrs_array[2],
 		NULL,
 	};
 
@@ -148,7 +168,7 @@ int main(void)
 	}
 
 	/* NULL can be passed to use kernel defaults */
-	usbg_ret = usbg_create_config(g, 1, "The only one", NULL, &c_strs, &c);
+	usbg_ret = usbg_create_config(g, 1, "cfg", NULL, &c_strs, &c);
 	if (usbg_ret != USBG_SUCCESS) {
 		fprintf(stderr, "Error creating config\n");
 		fprintf(stderr, "Error: %s : %s\n", usbg_error_name(usbg_ret),

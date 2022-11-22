@@ -43,6 +43,14 @@ struct usbg_f_uvc_frame_attrs
 	int wHeight;
 };
 
+struct usbg_f_uvc_guid_desc
+{
+    /* see: https://github.com/torvalds/linux/blob/master/include/media/v4l2-uvc.h
+     * for GUIDs */
+    uint8_t value[16];
+    unsigned int len;
+};
+
 struct usbg_f_uvc_format_attrs
 {
 	int bmaControls;
@@ -51,6 +59,7 @@ struct usbg_f_uvc_format_attrs
 	int bAspectRatioX;
 	int bAspectRatioY;
 	int bmInterfaceFlags;
+    struct usbg_f_uvc_guid_desc guidFormat;
 	const char *format;
 	struct usbg_f_uvc_frame_attrs **frames;
 };
@@ -91,6 +100,7 @@ enum usbg_f_uvc_format_attr {
 	USBG_F_UVC_FORMAT_ASPECTRATIO_X,
 	USBG_F_UVC_FORMAT_DEFAULT_FRAME_INDEX,
 	USBG_F_UVC_FORMAT_FORMAT_INDEX,
+	USBG_F_UVC_FORMAT_GUID_FORMAT,
 	USBG_F_UVC_FORMAT_ATTR_MAX
 };
 
@@ -119,6 +129,7 @@ union usbg_f_uvc_format_attr_val {
 	int bAspectRatioX;
 	int bAspectRatioY;
 	int bmInterfaceFlags;
+    struct usbg_f_uvc_guid_desc guidFormat;
 };
 
 /**
