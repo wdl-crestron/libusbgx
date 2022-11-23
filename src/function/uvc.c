@@ -1087,6 +1087,18 @@ static int uvc_attr_exist(const char *format_path, const char *format, const cha
 
 static int uvc_set_format(char *format_path, const char *format, const struct usbg_f_uvc_format_attrs *attrs)
 {
+    char path[USBG_MAX_PATH_LENGTH];
+    int nmb;
+    int ret;
+
+	nmb = snprintf(path, sizeof(path), "%s/%s", format_path, format);
+	if (nmb >= sizeof(path))
+		return USBG_ERROR_PATH_TOO_LONG;
+
+	ret = uvc_create_dir(path);
+	if (ret != USBG_SUCCESS)
+		return ret;
+
     if(uvc_attr_exist(format_path, format, "bDefaultFrameIndex") == USBG_SUCCESS) {
        int ret = usbg_write_dec(format_path, format, "bDefaultFrameIndex", attrs->bDefaultFrameIndex);
        if(ret != USBG_SUCCESS)
@@ -1157,6 +1169,10 @@ static int uvc_set_streaming(char *func_path, const char *format, const struct u
 	if (nmb >= sizeof(streaming_path))
 		return USBG_ERROR_PATH_TOO_LONG;
 
+	ret = uvc_set_format(streaming_path, format, attrs);
+	if(ret != USBG_SUCCESS)
+		ERROR("Error: %d", ret);
+
 	for(frame_attrs = attrs->frames, i = 0; frame_attrs[i]; ++i) {
 		if (frame_attrs[i]) {
 			ret = uvc_set_frame(streaming_path, format, frame_attrs[i]);
@@ -1164,10 +1180,6 @@ static int uvc_set_streaming(char *func_path, const char *format, const struct u
 				ERROR("Error: %d", ret);
 		}
 	}
-
-	ret = uvc_set_format(streaming_path, format, attrs);
-	if(ret != USBG_SUCCESS)
-		ERROR("Error: %d", ret);
 
 	return ret;
 }
