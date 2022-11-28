@@ -141,7 +141,7 @@ static int guid_get(const char *path, const char *name, const char *attr, void *
 	return USBG_SUCCESS;
 }
 
-static int guid_set(const char *path, const char *name, const char *attr, void *val)
+static int guid_set(const char *path, const char *name, const char *attr, const void *val)
 {
 	const struct usbg_f_uvc_guid_desc *desc = val;
 	const char *buf = desc->value;
