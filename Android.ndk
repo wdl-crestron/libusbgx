@@ -1,0 +1,47 @@
+LOCAL_PATH := $(call my-dir)
+
+include $(CLEAR_VARS)
+
+LOCAL_MODULE := libusbgx
+
+LOCAL_ARM_NEON := true
+
+LOCAL_CFLAGS := \
+    -DHAS_GADGET_SCHEMES \
+    -I$(LOCAL_PATH)/include \
+    -Wall \
+    -Wextra \
+    -Wfatal-errors \
+    -std=gnu99
+
+LOCAL_SRC_FILES := \
+    src/function/ether.c \
+    src/function/ffs.c \
+    src/function/hid.c \
+    src/function/loopback.c \
+    src/function/midi.c \
+    src/function/ms.c \
+    src/function/phonet.c \
+    src/function/printer.c \
+    src/function/serial.c \
+    src/function/uac2.c \
+    src/function/uvc.c \
+    src/usbg.c \
+    src/usbg_common.c \
+    src/usbg_common_libconfig.c \
+    src/usbg_error.c \
+    src/usbg_schemes_libconfig.c
+
+
+#  if HAS_GADGET_SCHEMES is defined
+#  build:
+#      src/usbg_schemes_libconfig.c
+#      src/usbg_common_libconfig.c
+# otherwise build:
+#     src/usbg_schemes_none.c
+
+LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/include
+
+LOCAL_STATIC_LIBRARIES := libconfig
+
+include $(BUILD_STATIC_LIBRARY)

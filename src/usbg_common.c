@@ -14,6 +14,7 @@
 #include "usbg/usbg_internal.h"
 
 #include <errno.h>
+#include <net/ethernet.h>
 #include <sys/stat.h>
 #include <sys/sysmacros.h>
 #include <sys/types.h>

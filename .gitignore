@@ -2,7 +2,6 @@
 !/examples/*.*
 /examples/.deps/
 /examples/.libs/
-/include/usbg/usbg_version.h
 /src/.deps/
 /src/.libs/
 /src/function/.deps/

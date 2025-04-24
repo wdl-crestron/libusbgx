@@ -17,6 +17,8 @@
 
 #include <malloc.h>
 
+#include <net/ethernet.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
