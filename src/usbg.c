@@ -497,7 +497,7 @@ static int usbg_parse_functions(const char *path, usbg_gadget *g)
 	}
 
 	for (i = 0; i < n; i++) {
-		if (ret == USBG_SUCCESS) {
+		if (ret == USBG_SUCCESS || ret == USBG_ERROR_NOT_SUPPORTED) {
 			const char *instance;
 			usbg_function_type type;
 			ret = usbg_split_function_instance_type(

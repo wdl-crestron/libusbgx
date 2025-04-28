@@ -12,6 +12,8 @@ LOCAL_CFLAGS := \
     -Wall \
     -Wextra \
     -Wfatal-errors \
+    -Wno-sign-compare \
+    -Wno-unused-parameter \
     -std=gnu99
 
 LOCAL_SRC_FILES := \
