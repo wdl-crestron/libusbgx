@@ -157,6 +157,7 @@ usbg_function *usbg_from_uvc_function(usbg_f_uvc *ff);
  */
 static inline void usbg_f_uvc_cleanup_attrs(struct usbg_f_uvc_attrs *attrs)
 {
+    (void)attrs;
 }
 
 int usbg_f_uvc_get_attrs(usbg_f_uvc *uvcf, struct usbg_f_uvc_attrs *attrs);
