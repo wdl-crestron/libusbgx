@@ -397,7 +397,7 @@ int usbg_f_uvc_set_config_attrs(usbg_f_uvc *uvcf, const struct usbg_f_uvc_config
 	int i;
 	int ret = 0;
 
-	for (i = USBG_F_UVC_FRAME_ATTR_MIN; i < USBG_F_UVC_FRAME_ATTR_MAX; ++i) {
+	for (i = USBG_F_UVC_CONFIG_ATTR_MIN; i < USBG_F_UVC_CONFIG_ATTR_MAX; ++i) {
 		ret = usbg_f_uvc_set_config_attr_val(uvcf, i,
 					       (const union usbg_f_uvc_config_attr_val *)
 					       ((const char *)iattrs

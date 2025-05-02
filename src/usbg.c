@@ -751,8 +751,7 @@ static int usbg_parse_config(const char *path, const char *name,
 		goto free_config;
 
 	TAILQ_INSERT_TAIL(&g->configs, c, cnode);
-
-	return USBG_SUCCESS;
+    goto out;
 
 free_config:
 	usbg_free_config(c);
@@ -1254,7 +1253,7 @@ int usbg_rm_config(usbg_config *c, int opts)
 	g = c->parent;
 
 	if (opts & USBG_RM_RECURSE) {
-		/* 
+		/*
 		 * Recursive flag was given
 		 * so remove all bindings and strings
 		 */

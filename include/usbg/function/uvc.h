@@ -162,6 +162,8 @@ static inline void usbg_f_uvc_cleanup_attrs(struct usbg_f_uvc_attrs *attrs)
 
 int usbg_f_uvc_get_attrs(usbg_f_uvc *uvcf, struct usbg_f_uvc_attrs *attrs);
 int usbg_f_uvc_set_attrs(usbg_f_uvc *uvcf, const struct usbg_f_uvc_attrs *attrs);
+int usbg_f_uvc_get_config_attrs(usbg_f_uvc *uvcf, struct usbg_f_uvc_config_attrs *iattrs);
+int usbg_f_uvc_set_config_attrs(usbg_f_uvc *uvcf, const struct usbg_f_uvc_config_attrs *iattrs);
 
 
 #ifdef __cplusplus
