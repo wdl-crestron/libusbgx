@@ -30,6 +30,13 @@ struct usbg_f_uvc_config_attrs
 	const char *function_name;
 };
 
+struct usbg_f_uvc_frame_intervals
+{
+    // dwFrameInterval, 100ns intervals
+    unsigned int value[16];
+    unsigned int len;
+};
+
 struct usbg_f_uvc_frame_attrs
 {
 	int bFrameIndex;
@@ -38,9 +45,9 @@ struct usbg_f_uvc_frame_attrs
 	int dwMaxBitRate;
 	int dwMaxVideoFrameBufferSize;
 	int dwDefaultFrameInterval;
-	int dwFrameInterval;
 	int wWidth;
 	int wHeight;
+    struct usbg_f_uvc_frame_intervals intervals;
 };
 
 struct usbg_f_uvc_guid_desc
@@ -74,7 +81,7 @@ enum usbg_f_uvc_config_attr {
 	USBG_F_UVC_CONFIG_ATTR_MIN = 0,
 	USBG_F_UVC_CONFIG_MAXBURST = USBG_F_UVC_CONFIG_ATTR_MIN,
 	USBG_F_UVC_CONFIG_MAXPACKET,
-	USBG_F_UVC_CONFIG_INTERVAL,
+	USBG_F_UVC_CONFIG_STREAMING_INTERVAL,
 	USBG_F_UVC_CONFIG_FUNCTION_NAME,
 	USBG_F_UVC_CONFIG_ATTR_MAX
 };
@@ -87,7 +94,7 @@ enum usbg_f_uvc_frame_attr {
 	USBG_F_UVC_FRAME_MAX_BITRATE,
 	USBG_F_UVC_FRAME_MAX_VIDEO_BUFFERSIZE,
 	USBG_F_UVC_FRAME_DEFAULT_INTERVAL,
-	USBG_F_UVC_FRAME_INTERVAL,
+	USBG_F_UVC_FRAME_INTERVALS,
 	USBG_F_UVC_FRAME_HEIGHT,
 	USBG_F_UVC_FRAME_WIDTH,
 	USBG_F_UVC_FRAME_ATTR_MAX

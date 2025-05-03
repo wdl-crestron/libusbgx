@@ -63,24 +63,24 @@ int main(void)
 	struct usbg_f_uvc_frame_attrs uvc_frame_attrs_array[] = {
 		{
 			.bFrameIndex = 1,
-			.dwFrameInterval = 333333,
 			.wHeight = 480,
 			.wWidth = 640,
+			.intervals = {.value = {333333}, .len = 1}
 		}, {
 			.bFrameIndex = 2,
-			.dwFrameInterval = 333333,
 			.wHeight = 720,
 			.wWidth = 1280,
+			.intervals = {.value = {333333}, .len = 1}
 		}, {
 			.bFrameIndex = 3,
-			.dwFrameInterval = 333333,
 			.wHeight = 1080,
 			.wWidth = 1920,
+			.intervals = {.value = {333333}, .len = 1}
 		}, {
 			.bFrameIndex = 4,
-			.dwFrameInterval = 333333,
 			.wHeight = 2160,
 			.wWidth = 3840,
+			.intervals = {.value = {333333}, .len = 1}
 		}
 	};
 

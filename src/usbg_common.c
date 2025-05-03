@@ -72,9 +72,34 @@ int usbg_read_int(const char *path, const char *name, const char *file,
 	if (ret >= 0) {
 		ret = 0;
 		*dest = strtol(buf, &pos, base);
+        if(ERANGE == errno)
+            return USBG_ERROR_NUMERIC_RANGE;
 		if (!pos)
 			ret = USBG_ERROR_OTHER_ERROR;
 	}
+
+	return ret;
+}
+
+int usbg_read_ints(const char *path, const char *name, const char *file,
+			 int base, int *dest, int dest_len)
+{
+	char buf[USBG_MAX_STR_LENGTH];
+	char *curr = buf;
+	char *end = NULL;
+	int ret = usbg_read_buf(path, name, file, buf);
+
+    if(ret < 0) return ret;
+
+    for(ret = 0; dest_len > ret && curr != end; ++ret)
+    {
+		dest[ret] = strtol(curr, &end, base);
+         if(ERANGE == errno)
+             return USBG_ERROR_NUMERIC_RANGE;
+         if(!end)
+             return USBG_ERROR_OTHER_ERROR;
+         curr = end;
+    }
 
 	return ret;
 }
@@ -196,6 +221,29 @@ int usbg_write_int(const char *path, const char *name, const char *file,
 		return USBG_ERROR_INVALID_PARAM;
 
 	ret = usbg_write_buf(path, name, file, buf, nmb);
+	if (ret > 0)
+		ret = 0;
+
+	return ret;
+}
+
+int usbg_write_ints(const char *path, const char *name, const char *file,
+		   const int *value, int len, const char *str)
+{
+	char buf[USBG_MAX_STR_LENGTH];
+    char *pos = buf;
+	int nmb = 0;
+	int ret;
+
+    for(int i = 0; i < len; ++i)
+    {
+        nmb = snprintf(pos, sizeof(buf) - nmb, str, value[i]);
+        if (nmb >= sizeof(buf) - nmb)
+            return USBG_ERROR_INVALID_PARAM;
+        pos += nmb;
+    }
+
+	ret = usbg_write_buf(path, name, file, buf, pos - buf);
 	if (ret > 0)
 		ret = 0;
 
