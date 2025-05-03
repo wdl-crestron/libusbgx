@@ -19,6 +19,7 @@
 #include <unistd.h>
 #include <malloc.h>
 #include <ftw.h>
+#include <dirent.h>
 #ifdef HAS_GADGET_SCHEMES
 #include <libconfig.h>
 #endif
@@ -29,7 +30,7 @@
 #define UVC_PATH_CLASS_HS		"class/hs/h"
 #define UVC_PATH_CLASS_SS		"class/ss/h"
 #define UVC_PATH_STREAMING		"streaming"
-#define UVC_PATH_STREAMING_UNCOMPRESSED	"uncompressed/u"
+#define UVC_PATH_STREAMING_UNCOMPRESSED	"uncompressed"
 #define UVC_PATH_STREAMING_UNCOMPRESSED_FRAMEBASED	"uncompressed/f"
 #define UVC_PATH_STREAMING_MJPEG	"mjpeg/m"
 
@@ -581,7 +582,7 @@ static int uvc_create_dir(const char *path)
 	return ret;
 }
 
-static int uvc_link(char *path, char *to, char *from)
+static int uvc_link(const char *path, const char *to, const char *from)
 {
 	char oldname[USBG_MAX_PATH_LENGTH];
 	char newname[USBG_MAX_PATH_LENGTH];
@@ -600,6 +601,67 @@ static int uvc_link(char *path, char *to, char *from)
 		return usbg_translate_error(errno);
 
 	return ret;
+}
+
+static int link_every_subdir(const char* base_path, const char *base_to, const char *base_from)
+{
+	char path[USBG_MAX_PATH_LENGTH];
+	char to[USBG_MAX_PATH_LENGTH];
+	char from[USBG_MAX_PATH_LENGTH];
+    int ret = USBG_SUCCESS;
+	int nmb = snprintf(path, sizeof(path), "%s/%s", base_path, base_to);
+
+    if (nmb >= sizeof(path))
+        return USBG_ERROR_PATH_TOO_LONG;
+
+    DIR *dir = opendir(path);
+
+    if(!dir)
+        return USBG_ERROR_NOT_FOUND;
+
+    for(;;)
+    {
+        struct dirent *entry = readdir(dir);
+
+        if(!entry)
+            break;
+        if(DT_DIR != entry->d_type)
+            continue;
+        if(0 == strncmp(".", entry->d_name, 1))
+            continue;
+
+        nmb = snprintf(to, sizeof(to), "%s/%s", base_to, entry->d_name);
+
+        if (nmb >= sizeof(to))
+        {
+            ret = USBG_ERROR_PATH_TOO_LONG;
+            break;
+        }
+
+        nmb = snprintf(from, sizeof(from), "%s/%s", base_from, entry->d_name);
+
+        if (nmb >= sizeof(from))
+        {
+            ret = USBG_ERROR_PATH_TOO_LONG;
+            break;
+        }
+
+        ret = uvc_link(base_path, to, from);
+        if (ret != USBG_SUCCESS)
+            break;
+    }
+
+    while(dir)
+    {
+        const int status = closedir(dir);
+
+        if(-1 == status && EINTR == errno)
+            continue;
+        if(-1 == status)
+            return USBG_ERROR_IO;
+        dir = NULL;
+    }
+    return ret;
 }
 
 static int uvc_set_class(usbg_f_uvc *uvcf, char *cs)
@@ -629,12 +691,9 @@ static int uvc_set_class(usbg_f_uvc *uvcf, char *cs)
 		if (nmb >= sizeof(check_path))
 			return USBG_ERROR_PATH_TOO_LONG;
 
-		ret = stat(check_path, &buffer);
-		if (!ret) {
-			ret = uvc_link(path, UVC_PATH_STREAMING_UNCOMPRESSED, "header/h/u");
-			if (ret != USBG_SUCCESS)
-				return ret;
-		}
+        ret = link_every_subdir(path, UVC_PATH_STREAMING_UNCOMPRESSED, "header/h");
+        if (ret != USBG_SUCCESS)
+            return ret;
 
 		nmb = snprintf(check_path, sizeof(check_path), "%s/" UVC_PATH_STREAMING_UNCOMPRESSED_FRAMEBASED, path);
 		if (nmb >= sizeof(check_path))
