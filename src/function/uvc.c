@@ -1094,7 +1094,7 @@ static int uvc_set_format(char *format_path, const char *format, const struct us
 
     if(uvc_attr_exist(format_path, format, "guidFormat") == USBG_SUCCESS) {
         const char *guidFormat = attrs->guidFormat;
-        int ret = usbg_write_string(format_path, format, "guidFormat", guidFormat);
+        int ret = usbg_write_guid(format_path, format, "guidFormat", guidFormat);
         if(ret != USBG_SUCCESS)
            ERROR("Error: %d(%s)", ret, usbg_strerror(ret));
     }
