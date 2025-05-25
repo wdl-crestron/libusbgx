@@ -108,6 +108,11 @@ int main(void)
 		NULL,
 	};
 
+    char h264_guid[] = {
+        'H',  '2',  '6',  '4', 0x00, 0x00, 0x10, 0x00,
+        0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71,
+        0x00 };
+
 	struct usbg_f_uvc_format_attrs uvc_format_attrs_array[] = {
 		{
 			.frames = uvc_frame_mjpeg_attrs,
@@ -121,13 +126,7 @@ int main(void)
 			.frames = uvc_frame_uncompressed_framebased_attrs,
 			.format = "uncompressed/f",
             .bVariableSize = 1,
-            .guidFormat = {
-                {
-                    'H',  '2',  '6',  '4', 0x00, 0x00, 0x10, 0x00,
-                    0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71
-                },
-                16
-            },
+            .guidFormat = h264_guid,
 			.bDefaultFrameIndex = 3,
 		}
 	};

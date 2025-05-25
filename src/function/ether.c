@@ -75,9 +75,9 @@ static struct {
 #undef NET_DEC_ATTR
 #undef NET_STRING_ATTR
 
-GENERIC_ALLOC_INST(ether, struct usbg_f_net, func);
+GENERIC_ALLOC_INST(ether, struct usbg_f_net, func)
 
-GENERIC_FREE_INST(ether, struct usbg_f_net, func);
+GENERIC_FREE_INST(ether, struct usbg_f_net, func)
 
 static int ether_set_attrs(struct usbg_function *f, void *f_attrs)
 {
@@ -184,8 +184,14 @@ struct usbg_function_type usbg_f_type_subset = {
 	ETHER_FUNCTION_OPTS
 };
 
+static char *ncm_os_desc_ifnames[] = {
+	"ncm",
+	NULL
+};
+
 struct usbg_function_type usbg_f_type_ncm = {
 	.name = "ncm",
+	.os_desc_iname = ncm_os_desc_ifnames,
 	ETHER_FUNCTION_OPTS
 };
 

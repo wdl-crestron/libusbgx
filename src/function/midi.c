@@ -29,8 +29,8 @@ struct usbg_f_midi {
 		.offset = offsetof(struct usbg_f_midi_attrs, _name),    \
 		.get = usbg_get_dec,				        \
 		.set = usbg_set_dec,				        \
-		.import = usbg_get_config_node_string,	                \
-		.export = usbg_set_config_node_string,		        \
+		.import = usbg_get_config_node_int,	                \
+		.export = usbg_set_config_node_int,		        \
 	}
 
 #define MIDI_STRING_ATTR(_name)						\
@@ -62,9 +62,9 @@ struct {
 #undef MIDI_DEC_ATTR
 #undef MIDI_STRING_ATTR
 
-GENERIC_ALLOC_INST(midi, struct usbg_f_midi, func);
+GENERIC_ALLOC_INST(midi, struct usbg_f_midi, func)
 
-GENERIC_FREE_INST(midi, struct usbg_f_midi, func);
+GENERIC_FREE_INST(midi, struct usbg_f_midi, func)
 
 static int midi_set_attrs(struct usbg_function *f, void *f_attrs)
 {

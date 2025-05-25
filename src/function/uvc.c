@@ -89,6 +89,7 @@ struct {
 };
 
 #undef UVC_DEC_ATTR
+#undef UVC_STRING_ATTR
 
 #define UVC_DEC_ATTR(_name)						\
 	{								\
@@ -121,50 +122,6 @@ struct {
 
 #undef UVC_DEC_ATTR
 
-static int guid_get(const char *path, const char *name, const char *attr, void *val)
-{
-	struct usbg_f_uvc_guid_desc *desc = val;
-	int ret;
-
-	ret = usbg_read_buf_limited(path, name, attr, desc->value, sizeof(desc->value));
-
-    if (ret == USBG_ERROR_EXIST) {
-        memset(desc->value, 0, sizeof(desc->value));
-        desc->len = 0;
-        return USBG_SUCCESS;
-    }
-
-	if (ret < 0)
-		return ret;
-
-	desc->len = ret;
-	return USBG_SUCCESS;
-}
-
-static int guid_set(const char *path, const char *name, const char *attr, const void *val)
-{
-	const struct usbg_f_uvc_guid_desc *desc = val;
-	const char *buf = desc->value;
-	int len = desc->len;
-	int ret;
-
-	if (len == 0) return USBG_SUCCESS;
-
-	ret = usbg_write_buf(path, name, attr, buf, len);
-	if (ret > 0)
-		ret = USBG_SUCCESS;
-
-	return ret;
-}
-
-#define UVC_GUID_ATTR(_name)						\
-	{								\
-		.name = #_name,						\
-		.offset = offsetof(struct usbg_f_uvc_format_attrs, _name),     \
-		.get = guid_get,				        \
-		.set = guid_set,				        \
-	}
-
 #define UVC_BOOL_ATTR(_name)						\
 	{								\
 		.name = #_name,						\
@@ -194,6 +151,28 @@ static int guid_set(const char *path, const char *name, const char *attr, const 
 		.export = usbg_set_config_node_int,		        \
 	}
 
+static inline int usbg_get_guid(const char *path, const char *name,
+			      const char *attr, void *val)
+{
+	return usbg_read_buf_alloc(path, name, attr, (char **)val, GUID_BIN_LENGTH);
+}
+
+static inline int usbg_set_guid(const char *path, const char *name,
+			      const char *attr, const void *val)
+{
+	return usbg_write_guid(path, name, attr, *(char **)val);
+}
+
+#define UVC_GUID_ATTR(_name)					\
+	{								\
+		.name = #_name,						\
+		.offset = offsetof(struct usbg_f_uvc_format_attrs, _name),     \
+		.get = usbg_get_guid,					\
+		.set = usbg_set_guid,					\
+		.export = usbg_set_config_node_guid,			\
+		.import = usbg_get_config_node_string,			\
+	}
+
 struct {
 	const char *name;
 	size_t offset;
@@ -204,13 +183,14 @@ struct {
 	usbg_export_node_func export;
 } uvc_format_attr[USBG_F_UVC_FORMAT_ATTR_MAX] = {
 	[USBG_F_UVC_FORMAT_CONTROLS] = UVC_DEC_ATTR_RO(bmaControls),
-	[USBG_F_UVC_FORMAT_INTERFACE_FLAGS] = UVC_DEC_ATTR_RO(bmInterfaceFlags),
+	[USBG_F_UVC_FORMAT_INTERLACE_FLAGS] = UVC_DEC_ATTR_RO(bmInterlaceFlags),
 	[USBG_F_UVC_FORMAT_ASPECTRATIO_X] = UVC_DEC_ATTR_RO(bAspectRatioX),
 	[USBG_F_UVC_FORMAT_ASPECTRATIO_Y] = UVC_DEC_ATTR_RO(bAspectRatioY),
 	[USBG_F_UVC_FORMAT_DEFAULT_FRAME_INDEX] = UVC_DEC_ATTR(bDefaultFrameIndex),
-	[USBG_F_UVC_FORMAT_FORMAT_INDEX] = UVC_DEC_ATTR_RO(bFormatIndex),
-	[USBG_F_UVC_FORMAT_VARIABLE_SIZE] = UVC_BOOL_ATTR(bVariableSize),
 	[USBG_F_UVC_FORMAT_GUID_FORMAT] = UVC_GUID_ATTR(guidFormat),
+	[USBG_F_UVC_FORMAT_BITS_PER_PIXEL] = UVC_DEC_ATTR(bBitsPerPixel),
+	[USBG_F_UVC_FORMAT_FORMAT_INDEX] = UVC_DEC_ATTR_RO(bFormatIndex),
+	[USBG_F_UVC_FORMAT_VARIABLE_SIZE] = UVC_BOOL_ATTR(bVariableSize)
 };
 
 
@@ -302,7 +282,8 @@ static inline struct formats *get_formats_mask(struct usbg_f_uvc *uvc)
 	return uvc->formats;
 }
 
-GENERIC_ALLOC_INST(uvc_internal, struct usbg_f_uvc, func);
+GENERIC_ALLOC_INST(uvc_internal, struct usbg_f_uvc, func)
+
 static int uvc_alloc_inst(struct usbg_function_type *type,
 			 usbg_function_type type_code,
 			 const char *instance, const char *path,
@@ -327,7 +308,7 @@ out:
 	return ret;
 }
 
-GENERIC_FREE_INST(uvc, struct usbg_f_uvc, func);
+GENERIC_FREE_INST(uvc, struct usbg_f_uvc, func)
 
 static int uvc_set_attrs(struct usbg_function *f, void *f_attrs)
 {
@@ -341,7 +322,7 @@ static int uvc_get_attrs(struct usbg_function *f, void *f_attrs)
 
 static void uvc_cleanup_attrs(struct usbg_function *f, void *f_attrs)
 {
-	return usbg_f_uvc_cleanup_attrs(f_attrs);
+	usbg_f_uvc_cleanup_attrs(f_attrs);
 }
 
 int usbg_f_uvc_get_config_attr_val(usbg_f_uvc *uvcf, enum usbg_f_uvc_config_attr iattr,
@@ -814,7 +795,7 @@ static int uvc_import_format(struct usbg_f_uvc *uvcf, const char *format, bool *
 
 out:
 	return ret;
-};
+}
 
 static int uvc_import_config(struct usbg_f_uvc *uvcf, config_setting_t *root)
 {
@@ -943,7 +924,7 @@ static int uvc_export_config(struct usbg_f_uvc *uvcf, config_setting_t *root)
 
 out:
 	return ret;
-};
+}
 
 static int uvc_export_format_attrs(struct usbg_f_uvc *uvcf, const char *format,
 				  config_setting_t *root)
@@ -1025,7 +1006,7 @@ static int uvc_export_frames(struct usbg_f_uvc *uvcf, const char *format,
 
 out:
 	return ret;
-};
+}
 
 static int uvc_libconfig_export(struct usbg_function *f, config_setting_t *root)
 {
@@ -1112,8 +1093,8 @@ static int uvc_set_format(char *format_path, const char *format, const struct us
     }
 
     if(uvc_attr_exist(format_path, format, "guidFormat") == USBG_SUCCESS) {
-        struct usbg_f_uvc_guid_desc guidFormat = attrs->guidFormat;
-        int ret = guid_set(format_path, format, "guidFormat", &guidFormat);
+        const char *guidFormat = attrs->guidFormat;
+        int ret = usbg_write_string(format_path, format, "guidFormat", guidFormat);
         if(ret != USBG_SUCCESS)
            ERROR("Error: %d(%s)", ret, usbg_strerror(ret));
     }
@@ -1148,7 +1129,19 @@ static int uvc_set_frame(char *format_path, const char *format, const struct usb
 	if (ret != USBG_SUCCESS)
 		return ret;
 
-	ret = usbg_write_dec(frame_path, frame_name, "dwMaxVideoFrameBufferSize", attrs->wHeight * attrs->wWidth);
+	ret = usbg_write_dec(frame_path, frame_name, "dwDefaultFrameInterval", attrs->dwDefaultFrameInterval);
+	if (ret != USBG_SUCCESS)
+		return ret;
+
+	ret = usbg_write_dec(frame_path, frame_name, "dwMaxVideoFrameBufferSize", attrs->dwMaxVideoFrameBufferSize);
+	if (ret != USBG_SUCCESS)
+		return ret;
+
+	ret = usbg_write_dec(frame_path, frame_name, "dwMinBitRate", attrs->dwMinBitRate);
+	if (ret != USBG_SUCCESS)
+		return ret;
+
+	ret = usbg_write_dec(frame_path, frame_name, "dwMaxBitRate", attrs->dwMaxBitRate);
 	if (ret != USBG_SUCCESS)
 		return ret;
 
@@ -1277,7 +1270,7 @@ static int uvc_remove(struct usbg_function *f, int opts)
 		return USBG_ERROR_PATH_TOO_LONG;
 
 	return ret;
-};
+}
 
 struct usbg_function_type usbg_f_type_uvc = {
 	.name = "uvc",
